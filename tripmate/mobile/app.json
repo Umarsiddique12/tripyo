@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "TripMate",
+    "slug": "tripmate",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/23.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/23.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tripmate.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/23.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.tripmate.app"
+    },
+    "web": {
+      "favicon": "./assets/23.png"
+    },
+    "extra": {
+      "apiUrl": "http://10.0.2.2:5000"
+    },
+    "plugins": []
+  }
+}
