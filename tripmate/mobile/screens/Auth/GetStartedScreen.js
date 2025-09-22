@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const GetStartedScreen = ({ navigation }) => {
   // TEMP: Force remote fallback to verify background renders; set to false after confirming local asset works
-  const [useFallback, setUseFallback] = useState(true);
+  const [useFallback, setUseFallback] = useState(false);
   return (
     <View style={styles.container}>
       <ImageBackground
