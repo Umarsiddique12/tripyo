@@ -88,6 +88,34 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  // Location tracking methods
+  const startLocationTracking = (tripId) => {
+    if (socket && isConnected) {
+      socket.emit('startLocationTracking', { tripId });
+    }
+  };
+
+  const stopLocationTracking = (tripId) => {
+    if (socket && isConnected) {
+      socket.emit('stopLocationTracking', { tripId });
+    }
+  };
+
+  const updateLocation = (tripId, locationData) => {
+    if (socket && isConnected) {
+      socket.emit('updateLocation', {
+        tripId,
+        ...locationData
+      });
+    }
+  };
+
+  const requestCurrentLocations = (tripId) => {
+    if (socket && isConnected) {
+      socket.emit('requestCurrentLocations', { tripId });
+    }
+  };
+
   const onNewMessage = (callback) => {
     if (socket) {
       socket.on('newMessage', callback);
@@ -137,6 +165,42 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  // Location tracking event listeners
+  const onLocationUpdate = (callback) => {
+    if (socket) {
+      socket.on('locationUpdate', callback);
+      return () => socket.off('locationUpdate', callback);
+    }
+  };
+
+  const onUserStartedTracking = (callback) => {
+    if (socket) {
+      socket.on('userStartedTracking', callback);
+      return () => socket.off('userStartedTracking', callback);
+    }
+  };
+
+  const onUserStoppedTracking = (callback) => {
+    if (socket) {
+      socket.on('userStoppedTracking', callback);
+      return () => socket.off('userStoppedTracking', callback);
+    }
+  };
+
+  const onMemberLocationUpdate = (callback) => {
+    if (socket) {
+      socket.on('memberLocationUpdate', callback);
+      return () => socket.off('memberLocationUpdate', callback);
+    }
+  };
+
+  const onRequestLocation = (callback) => {
+    if (socket) {
+      socket.on('requestLocation', callback);
+      return () => socket.off('requestLocation', callback);
+    }
+  };
+
   const value = {
     socket,
     isConnected,
@@ -147,12 +211,21 @@ export const SocketProvider = ({ children }) => {
     startTyping,
     stopTyping,
     addReaction,
+    startLocationTracking,
+    stopLocationTracking,
+    updateLocation,
+    requestCurrentLocations,
     onNewMessage,
     onUserJoined,
     onUserLeft,
     onUserTyping,
     onUserStoppedTyping,
     onMessageReaction,
+    onLocationUpdate,
+    onUserStartedTracking,
+    onUserStoppedTracking,
+    onMemberLocationUpdate,
+    onRequestLocation,
     onError,
   };
 

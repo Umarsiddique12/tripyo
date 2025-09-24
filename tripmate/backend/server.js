@@ -218,6 +218,135 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Location tracking events
+  socket.on('startLocationTracking', async (data) => {
+    try {
+      const { tripId } = data;
+      
+      // Verify user is member of the trip
+      const Trip = require('./models/Trip');
+      const trip = await Trip.findById(tripId);
+      
+      if (!trip || !trip.isMember(socket.userId)) {
+        socket.emit('error', { message: 'Not authorized to track location for this trip' });
+        return;
+      }
+
+      // Join location tracking room for this trip
+      socket.join(`location_${tripId}`);
+      socket.locationTripId = tripId;
+      
+      console.log(`User ${socket.userId} started location tracking for trip ${tripId}`);
+      
+      // Notify others in the trip that user started tracking
+      socket.to(`trip_${tripId}`).emit('userStartedTracking', {
+        userId: socket.userId,
+        tripId: tripId,
+        timestamp: new Date()
+      });
+
+    } catch (error) {
+      console.error('Start location tracking error:', error);
+      socket.emit('error', { message: 'Failed to start location tracking' });
+    }
+  });
+
+  socket.on('stopLocationTracking', (data) => {
+    try {
+      const { tripId } = data;
+      
+      if (socket.locationTripId === tripId) {
+        socket.leave(`location_${tripId}`);
+        socket.locationTripId = null;
+        
+        console.log(`User ${socket.userId} stopped location tracking for trip ${tripId}`);
+        
+        // Notify others in the trip that user stopped tracking
+        socket.to(`trip_${tripId}`).emit('userStoppedTracking', {
+          userId: socket.userId,
+          tripId: tripId,
+          timestamp: new Date()
+        });
+      }
+
+    } catch (error) {
+      console.error('Stop location tracking error:', error);
+      socket.emit('error', { message: 'Failed to stop location tracking' });
+    }
+  });
+
+  socket.on('updateLocation', async (data) => {
+    try {
+      const { tripId, latitude, longitude, accuracy, heading, speed } = data;
+      
+      // Verify user is member of the trip and is tracking
+      if (socket.locationTripId !== tripId) {
+        socket.emit('error', { message: 'Not currently tracking location for this trip' });
+        return;
+      }
+
+      const Trip = require('./models/Trip');
+      const trip = await Trip.findById(tripId);
+      
+      if (!trip || !trip.isMember(socket.userId)) {
+        socket.emit('error', { message: 'Not authorized to update location for this trip' });
+        return;
+      }
+
+      const locationData = {
+        userId: socket.userId,
+        tripId,
+        latitude,
+        longitude,
+        accuracy,
+        heading,
+        speed,
+        timestamp: new Date()
+      };
+
+      // Broadcast location update to all users tracking this trip
+      socket.to(`location_${tripId}`).emit('locationUpdate', locationData);
+      
+      // Also send to general trip room for notifications
+      socket.to(`trip_${tripId}`).emit('memberLocationUpdate', {
+        userId: socket.userId,
+        latitude,
+        longitude,
+        timestamp: new Date()
+      });
+
+    } catch (error) {
+      console.error('Update location error:', error);
+      socket.emit('error', { message: 'Failed to update location' });
+    }
+  });
+
+  socket.on('requestCurrentLocations', async (data) => {
+    try {
+      const { tripId } = data;
+      
+      // Verify user is member of the trip
+      const Trip = require('./models/Trip');
+      const trip = await Trip.findById(tripId);
+      
+      if (!trip || !trip.isMember(socket.userId)) {
+        socket.emit('error', { message: 'Not authorized to request locations for this trip' });
+        return;
+      }
+
+      // Request current locations from all users tracking this trip
+      socket.to(`location_${tripId}`).emit('requestLocation', {
+        requesterId: socket.userId,
+        tripId,
+        timestamp: new Date()
+      });
+
+    } catch (error) {
+      console.error('Request current locations error:', error);
+      socket.emit('error', { message: 'Failed to request current locations' });
+    }
+  });
+
   // Disconnect handling
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.userId}`);
@@ -229,6 +358,16 @@ io.on('connection', (socket) => {
         tripId: socket.tripId,
         timestamp: new Date()
       });
+    }
+
+    // Handle location tracking cleanup
+    if (socket.locationTripId) {
+      socket.to(`trip_${socket.locationTripId}`).emit('userStoppedTracking', {
+        userId: socket.userId,
+        tripId: socket.locationTripId,
+        timestamp: new Date()
+      });
+      socket.leave(`location_${socket.locationTripId}`);
     }
   });
 });

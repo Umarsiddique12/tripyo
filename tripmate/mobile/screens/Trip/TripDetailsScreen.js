@@ -319,8 +319,10 @@ const TripDetailsScreen = ({ route, navigation }) => {
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => {
-              // TODO: Implement location tracking
-              Alert.alert('Location', 'Location tracking coming soon!');
+              navigation.navigate('LocationTracking', { 
+                tripId: trip._id, 
+                tripName: trip.name 
+              });
             }}
           >
             <Ionicons name="location" size={24} color="#FF6B35" />

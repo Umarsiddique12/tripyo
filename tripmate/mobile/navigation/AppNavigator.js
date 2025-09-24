@@ -17,6 +17,9 @@ import SettingsScreen from '../screens/Profile/SettingsScreen';
 import InviteMemberScreen from '../screens/Trip/InviteMemberScreen';
 import TripsScreen from '../screens/Trip/TripsScreen';
 import AddTripScreen from '../screens/Trip/AddTripScreen';
+import LocationTrackingScreen from '../screens/Trip/LocationTrackingScreen';
+import SimpleLocationScreen from '../screens/Trip/SimpleLocationScreen';
+import BasicLocationScreen from '../screens/Trip/BasicLocationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -80,6 +83,11 @@ const TripsStack = () => (
         headerStyle: { backgroundColor: '#007AFF' },
         headerTintColor: '#fff',
       }}
+    />
+    <Stack.Screen 
+      name="LocationTracking" 
+      component={BasicLocationScreen}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
